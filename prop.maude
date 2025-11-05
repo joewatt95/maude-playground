@@ -1,0 +1,131 @@
+***(
+  This is based on:
+  https://github.com/carlosolarte/L-framework
+  https://www.mat.ufrn.br/cade-27/wp-content/uploads/2019/09/tutorial-RL.pdf
+
+)
+
+*** load full-maude.maude
+
+*** Well-formed formulae.
+fmod WFF is
+  pr QID .
+  sort Prop .
+  sort Wff .
+  subsort Qid < Prop < Wff .
+
+  ops _→_ _∧_ _∨_ : Wff Wff -> Wff [ctor prec 30] .
+  op ¬_ : Wff -> Wff [ctor prec 25] .
+endfm
+
+view Wff from TRIV to WFF is
+  sort Elt to Wff .
+endv
+
+*** Contexts.
+fmod Ctx is
+  pr SET{Wff} * (
+    sort Set{Wff} to Ctx,
+    sort NESet{Wff} to NECtx
+  ) .
+endfm
+
+*** Sequents.
+fmod Sequent is
+  pr Ctx .
+  sorts Sequent Sequents .
+  subsort Sequent < Sequents .
+
+  op Done : -> Sequent [ctor] .
+  op _⊢_ : Ctx Ctx -> Sequent [ctor prec 122] .
+
+  *** Meta-theoretic conjunction of judgement forms.
+  op _ _ : Sequents Sequents -> Sequents [ctor comm assoc id: Done] .
+endfm
+
+***(
+  Bottom-up proof search for Gentzen's LK.
+
+  Thanks to cut elimination, the complexity of the active formulae induces a
+  well-founded ordering on our search procedure, thus guaranteeing strong
+  normalization.
+
+  Would be interesting to adapt this to obtain a proof search procedure for
+  nonmonotonic, defeasible logics.
+)
+mod LK is
+  pr Sequent .
+  vars Γ Δ : Ctx .
+  vars φ ψ : Wff .
+
+  rl [axiom] :
+    Γ, φ ⊢ φ, Δ
+  =>
+    Done .
+
+  rl [impl-left] :
+    Γ, φ → ψ ⊢ Δ
+  =>
+    (Γ ⊢ φ, Δ) (Γ, ψ ⊢ Δ) .
+
+  rl [impl-right] :
+    Γ ⊢ φ → ψ, Δ
+  =>
+    Γ, φ ⊢ ψ, Δ .
+
+  rl [neg-left] :
+    Γ, ¬ φ ⊢ Δ
+  =>
+    Γ ⊢ φ, Δ .
+
+  rl [neg-right] :
+    Γ ⊢ ¬ φ, Δ
+  =>
+    Γ, φ ⊢ Δ .
+
+  rl [and-left-1] :
+    Γ, φ ∧ ψ ⊢ Δ
+  =>
+    Γ, φ ⊢ Δ .
+
+  rl [and-left-2] :
+    Γ, φ ∧ ψ ⊢ Δ
+  =>
+    Γ, ψ ⊢ Δ .
+
+  rl [and-right] :
+    Γ ⊢ φ ∧ ψ, Δ
+  =>
+    (Γ ⊢ φ, Δ) (Γ ⊢ ψ, Δ) .
+
+  rl [or-left] :
+    Γ, φ ∨ ψ ⊢ Δ
+  =>
+    (Γ, φ ⊢ Δ) (Γ, ψ ⊢ Δ) .
+
+  rl [or-right-1] :
+    Γ ⊢ φ ∨ ψ, Δ
+  =>
+    Γ ⊢ φ, Δ .
+
+  rl [or-right-2] :
+    Γ ⊢ φ ∨ ψ, Δ
+  =>
+    Γ ⊢ ψ, Δ .
+
+endm
+
+smod PROOF-SEARCH-STRAT is
+  protecting LK .
+
+  strat proofSearch @ Sequent .
+
+  sd proofSearch := all * ; match Done .
+
+endsm
+
+eof
+
+set trace rl on .
+
+rewrite ⊢ ¬ ('P ∧ 'Q) → (¬ 'P ∨ ¬ 'Q) .

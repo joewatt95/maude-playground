@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "maude-playground"
+version = "0.1.0"
+description = ""
+authors = ["Joe <joewatt95@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+maude = "^1.6"
+umaudemc = "^0.16"
+
+[tool.poetry.group.dev.dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
