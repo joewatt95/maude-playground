@@ -6,13 +6,15 @@ fmod CNF-SYNTAX is
 
   var p : Literal .
 
-  ops ⊤ ⊥ : -> Clause [ctor] .
   op ¬ _ : Literal -> Literal [ctor prec 25] .
+
+  op ⊥ : -> Clause [ctor] .
   op _ ∨ _ : Clause Clause -> Clause [ctor assoc comm id: ⊥ prec 30] .
-  op _ , _ : CNF CNF -> CNF [ctor assoc comm id: ⊤ prec 35] .
 
   eq p ∨ p = p .
-  eq p ∨ ¬ p = ⊤ .
+
+  op ⊤ : -> CNF [ctor] .
+  op _ , _ : CNF CNF -> CNF [ctor assoc comm id: ⊤ prec 35] .
 endfm
 
 mod RESOLUTION is
