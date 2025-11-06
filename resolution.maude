@@ -7,9 +7,9 @@ fmod CNF-SYNTAX is
   var p : Literal .
 
   ops ⊤ ⊥ : -> Clause [ctor] .
-  op ¬_ : Literal -> Literal [ctor prec 25] .
-  op _∨_ : Clause Clause -> Clause [ctor assoc comm id: ⊥ prec 30] .
-  op _,_ : CNF CNF -> CNF [ctor assoc comm id: ⊤ prec 35] .
+  op ¬ _ : Literal -> Literal [ctor prec 25] .
+  op _ ∨ _ : Clause Clause -> Clause [ctor assoc comm id: ⊥ prec 30] .
+  op _ , _ : CNF CNF -> CNF [ctor assoc comm id: ⊤ prec 35] .
 
   eq p ∨ p = p .
   eq p ∨ ¬ p = ⊤ .
@@ -18,32 +18,31 @@ endfm
 mod RESOLUTION is
   pr CNF-SYNTAX .
 
-  var p : Literal .
-  vars C C' : Clause .
-
-  sorts State .
+  sort State .
   subsort CNF < State .
 
-  op resolved _ and _ on _ to obtain _ : CNF CNF CNF CNF -> State [ctor] .
+  var p : Literal .
+  vars C C' D0 D1 D2 : Clause .
+  var ϕ : CNF .
+
+  op resolved _ and _ on _ : Clause Clause Clause -> State [ctor prec 30] .
   op done : -> State [ctor] .
 
-  var ϕ Ψ0 Ψ1 Ψ2 : CNF .
-
-  rl [init] : ϕ => resolved ⊥ and ⊥ on ⊥ to obtain ϕ . 
+  rl [start] : ϕ => ϕ, resolved ⊥ and ⊥ on ⊥ .
 
   rl [resolve] :
-    resolved Ψ0 and Ψ1 on Ψ2 to obtain C ∨ p, C' ∨ ¬ p, ϕ
+    C ∨ p, C' ∨ ¬ p, resolved D0 and D1 on D2
   =>
-    resolved C ∨ p and C' ∨ ¬ p on p to obtain C ∨ C', ϕ .
+    C ∨ C', resolved C ∨ p and C' ∨ ¬ p on p .
 
-  rl [done] : resolved Ψ0 and Ψ1 on Ψ2 to obtain ⊥ => done .
+  rl [done] : ⊥, resolved D0 and D1 on D2 => done .
 endm
 
 smod PROOF-SEARCH-STRAT is
   pr RESOLUTION .
 
   strat proofSearch @ CNF .
-  sd proofSearch := init ; resolve * ; done .
+  sd proofSearch := start ; resolve * ; done .
 endsm
 
 eof
